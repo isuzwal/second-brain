@@ -4,14 +4,10 @@ import multer from "multer";
  import dotenv from "dotenv";
  dotenv.config();
 
- if (!process.env.CLOUD_NAME || !process.env.API_KEY || !process.env.API_SECRET) {
-  throw new Error(" Missing Cloudinary environment variables");
-}
-
  cloudinary.config({ 
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY, 
-  api_secret:process.env.API_SECRECT!,
+  cloud_name: "da0zslcf2",
+  api_key: "947196628324946", 
+  api_secret:"mQauKRrARnJmxY4VnSnK94XoWs4",
 });
 
 
