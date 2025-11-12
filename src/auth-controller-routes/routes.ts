@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import bcryptjs from "bcryptjs";
-import { User, Content, Link } from "../database/db.js";
+import { User, Content, Link, Notes } from "../database/db.js";
 
 import jwt from "jsonwebtoken";
 import { random } from "../hash.js";
@@ -85,7 +85,8 @@ export const Login = async (req: Request, res: Response) => {
 };
 // --> Add content
 export const ContentAdd = async (req: Request, res: Response) => {
-  const { title, link, tags, icons, brain } = req.body;
+  const { title, link, tags,  brain, description,image} = req.body;
+ 
   if (!title) {
     return res.status(404).json({
       status: false,
@@ -94,23 +95,24 @@ export const ContentAdd = async (req: Request, res: Response) => {
   }
   try {
     await Content.create({
-      title: title,
-      link: link,
+      title,
+      link,
       userId: req.userId,
-      // array of the tags
       tags:
         typeof tags === "string"
           ? tags.split(",").map((t) => t.trim()) // "youtube,vibe" → ["youtube","vibe"]
           : tags,
-      brain: brain,
-      type: icons,
+      brain,
+     
+      description,
+      image
     });
     return res.status(201).json({
       status: true,
       message: "Content add successfully ",
     });
   } catch (error) {
-    console.error("At the add content route", error);
+   
     return res.status(500).json({
       status: false,
       error: "Internal Server Error!",
@@ -150,7 +152,7 @@ export const GetContent = async (req: Request, res: Response) => {
       data: content,
     });
   } catch (error) {
-    console.error("At the Get content", error);
+  
     return res.status(500).json({
       status: false,
       error: "Internal Server Error!",
@@ -185,7 +187,7 @@ export const ContentDelete = async (req: Request, res: Response) => {
 // share able link
 export const ShareLink = async (req: Request, res: Response) => {
   const share = req.body.share;
-  console.log("True or false ", share);
+  
   try {
     if (share) {
       const existingLink = await Link.findOne({
@@ -217,7 +219,7 @@ export const ShareLink = async (req: Request, res: Response) => {
       message: "Remove sharable Link",
     });
   } catch (error) {
-    console.error("At the delete route", error);
+
     return res.status(500).json({
       status: false,
       error: "Internal Server Error!",
@@ -238,7 +240,7 @@ export const GetSharelinkcontent = async (req: Request, res: Response) => {
       });
     }
     // find the content
-    const content = await Content.findOne({
+    const content = await Content.find({
       userId: link?.userId,
     }).populate("userId","username");
     // find the userdata
@@ -268,7 +270,7 @@ export const GetSharelinkcontent = async (req: Request, res: Response) => {
 export const GetBrainContent = async (req: Request, res: Response) => {
   const {brain} = req.params; 
   const user_id=req.userId;
-  console.log("Testing id",user_id)
+
   try {
     if (!brain || !user_id) {
       return res.status(400).json({
@@ -286,12 +288,137 @@ export const GetBrainContent = async (req: Request, res: Response) => {
         message: "Content not found !",
       });
     }
-    console.log(data)
+
     return res.status(200).json({
       status: true,
       data,
     });
   } catch (error) {
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error!",
+    });
+  }
+};
+
+export const UploadImage=async(req:Request,res:Response)=>{
+   try {
+     if (!req.file) {
+        return res.status(400).json({
+          status: "Fail",
+          msg: "No file uploaded"
+        });
+      }
+    console.log("File uploaded:", req.file);
+     const link = req.file.path;
+      res.json({ link: link });
+  } catch (error) {
+ 
+    res.status(500).json({ message: "Upload failed" });
+  }
+}
+
+
+
+export const AddNote = async (req: Request, res: Response) => {
+  const { title, content, color } = req.body;
+  const userId = req.userId;
+ 
+  try {
+    if (!title || !content) {
+      return res.status(400).json({
+        status: false,
+        message: "Title and content are required!",
+      });
+    }
+
+    await Notes.create({
+      title,
+      content,
+      color,
+      userId,
+    });
+
+    return res.status(201).json({
+      status: true,
+      message: "Note added successfully!",
+    });
+  } catch (error) {
+    console.error("At the AddNote route", error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error!",
+    });
+  }
+};
+
+
+export const GetNotes = async (req: Request, res: Response) => {
+  try {
+    const notes = await Notes.find({ userId: req.userId }).sort({ createdAt: -1 });
+    return res.status(200).json({
+      status: true,
+      data: notes,
+    });
+  } catch (error) {
+
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error!",
+    });
+  }
+};
+
+
+export const UpdateNote = async (req: Request, res: Response) => {
+  const { noteId, title, content, color } = req.body;
+  try {
+    const note = await Notes.findOne({ _id: noteId, userId: req.userId });
+    if (!note) {
+      return res.status(404).json({
+        status: false,
+        message: "Note not found!",
+      });
+    }
+
+    note.title = title || note.title;
+    note.content = content || note.content;
+    note.color = color || note.color;
+    await note.save();
+
+    return res.status(200).json({
+      status: true,
+      message: "Note updated successfully!",
+    });
+  } catch (error) {
+    console.error("At the UpdateNote route", error);
+    return res.status(500).json({
+      status: false,
+      error: "Internal Server Error!",
+    });
+  }
+};
+
+
+export const DeleteNote = async (req: Request, res: Response) => {
+  const { noteId } = req.params;
+
+  try {
+    const note = await Notes.findOne({ _id: noteId, userId: req.userId });
+    if (!note) {
+      return res.status(404).json({
+        status: false,
+        message: "Note not found!",
+      });
+    }
+
+    await Notes.findByIdAndDelete(noteId);
+    return res.status(200).json({
+      status: true,
+      message: "Note deleted successfully!",
+    });
+  } catch (error) {
+    console.error("At the DeleteNote route", error);
     return res.status(500).json({
       status: false,
       error: "Internal Server Error!",

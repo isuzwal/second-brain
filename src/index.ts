@@ -13,7 +13,7 @@
  app.use(cors({
      origin:["http://localhost:5173" ,"https://second-brain-eosin.vercel.app"],
     allowedHeaders:['Content-Type','Authorization'],
-    methods:['GET','POST','DELETE','OPTIONS'],
+    methods:['GET','POST','PUT','DELETE','OPTIONS'],
     credentials:true
  }));
 
@@ -29,3 +29,4 @@
  app.listen(PORT,()=>{
     console.log("Server is Running at PORT",PORT)
  })
+

@@ -1,1 +1,1 @@
-{"root":["./src/hash.ts","./src/index.ts","./src/allroutes/userrouter.ts","./src/auth-controller-routes/routes.ts","./src/database/connection.ts","./src/database/db.ts","./src/middlware/middlware.ts"],"version":"5.9.2"}
+{"root":["./src/hash.ts","./src/index.ts","./src/allroutes/userrouter.ts","./src/auth-controller-routes/routes.ts","./src/database/connection.ts","./src/database/db.ts","./src/middlware/file-upload.ts","./src/middlware/middlware.ts"],"version":"5.9.2"}
